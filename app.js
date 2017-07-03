@@ -1,6 +1,7 @@
 var express = require('express');
 var bodyParser = require('body-parser');
 var _ = require('underscore');
+var db = require('./db.js');
 var app = express();
 var PORT = process.env.PORT || 3000;
 var todos = [];
@@ -33,6 +34,10 @@ app.get("/todos", function(req, res) {
         }); //Filter returns a new array with all values that returned true for the anonymous function above
     }
 
+    res.json({
+        filtered: true,
+        description: "shilll"
+    })
     res.json(filteredTodos);
 
 });
@@ -112,21 +117,29 @@ app.put('/todos/:id', function(req, res) {
 app.post('/todos', function(req, res) {
     var body = _.pick(req.body, "description", "completed");
 
+    db.todo.create(body).then(function(todo) {
+        return res.status(200).json(todo);
+    }).catch(function(e) {
+        return res.status(400).json(e);
+    });
+
     //THE POWER OF UNDERSCOREE
-    if (!_.isBoolean(body.completed) || !_.isString(body.description) || body.description.trim().length === 0) {
-        return res.status(400).send();
-    }
+    // if (!_.isBoolean(body.completed) || !_.isString(body.description) || body.description.trim().length === 0) {
+    //     return res.status(400).send();
+    // }
 
-    body.description = body.description.trim();
+    // body.description = body.description.trim();
 
-    body.id = todoNextId++;
+    //body.id = todoNextId++;
 
-    todos.push(body);
+    //todos.push(body);
 
-    res.send(body);
+    //res.send(body);
 
 });
 
-app.listen(PORT, function() {
-    console.log("Listening on port " + PORT);
+db.sequelize.sync().then(function() {
+    app.listen(PORT, function() {
+        console.log("Listening on port " + PORT);
+    });
 });
