@@ -15,30 +15,46 @@ app.get("/", function(req, res) {
 
 //GET /todos
 app.get("/todos", function(req, res) {
-    var queryParams = req.query;
-    var filteredTodos = todos;
+    var query = req.query;
 
-    if (queryParams.hasOwnProperty('completed') && queryParams.completed === 'true') {
-        filteredTodos = _.where(filteredTodos, {
-            completed: true
-        }); //Gets all todos where completed is true
-    } else if (queryParams.hasOwnProperty('completed') && queryParams.completed === 'false') {
-        filteredTodos = _.where(filteredTodos, {
-            completed: false
-        }); //Gets all todos where completed is false
+    var where = {};
+
+    if (query.hasOwnProperty('completed') && query.completed === 'true') {
+        where.completed = true;
+    } else if (query.hasOwnProperty('completed') && query.completed === 'false') {
+        where.completed = false;
     }
 
-    if (queryParams.hasOwnProperty('q') && queryParams.q.length > 0) {
-        filteredTodos = _.filter(filteredTodos, function(todo) {
-            return todo.description.toLowerCase().indexOf(queryParams.q.toLowerCase()) > -1;
-        }); //Filter returns a new array with all values that returned true for the anonymous function above
+    if (query.hasOwnProperty('q') && query.q.length > 0) {
+         where.description = {
+             $like: '%' + query.q + '%'
+         };
     }
 
-    res.json({
-        filtered: true,
-        description: "shilll"
-    })
-    res.json(filteredTodos);
+    db.todo.findAll({where: where}).then(function(todos) {
+        res.json(todos);
+    }, function(e) {
+        res.status(500).send();
+    });
+    // var filteredTodos = todos;
+    //
+    // if (queryParams.hasOwnProperty('completed') && queryParams.completed === 'true') {
+    //     filteredTodos = _.where(filteredTodos, {
+    //         completed: true
+    //     }); //Gets all todos where completed is true
+    // } else if (queryParams.hasOwnProperty('completed') && queryParams.completed === 'false') {
+    //     filteredTodos = _.where(filteredTodos, {
+    //         completed: false
+    //     }); //Gets all todos where completed is false
+    // }
+    //
+    // if (queryParams.hasOwnProperty('q') && queryParams.q.length > 0) {
+    //     filteredTodos = _.filter(filteredTodos, function(todo) {
+    //         return todo.description.toLowerCase().indexOf(queryParams.q.toLowerCase()) > -1;
+    //     }); //Filter returns a new array with all values that returned true for the anonymous function above
+    // }
+    //
+    // res.json(filteredTodos);
 
 });
 
