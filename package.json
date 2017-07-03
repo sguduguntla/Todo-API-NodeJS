@@ -10,6 +10,9 @@
   "license": "ISC",
   "dependencies": {
     "body-parser": "^1.17.2",
+    "express": "^4.15.3",
+    "sequelize": "^4.2.1",
+    "sqlite": "^2.8.0",
     "underscore": "^1.8.3"
   }
 }
