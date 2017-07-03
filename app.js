@@ -45,22 +45,33 @@ app.get("/todos", function(req, res) {
 //GET /todos/:id (colon means that you can enter whatever id you want)
 app.get('/todos/:id', function(req, res) {
     var todoId = parseInt(req.params.id, 10);
-    //Finds the first todo that has the id that is equal to todoId
-    var matchedTodo = _.findWhere(todos, {
-        id: todoId
-    }); //Underscore js!!
 
-    // todos.forEach(function(todo) {
-    //     if (todoId === todo.id) {
-    //         matchedTodo = todo;
-    //     }
-    // });
-
-    if (matchedTodo) {
-        res.json(matchedTodo);
-    } else {
-        res.status(404).send();
-    }
+    db.todo.findById(todoId).then(function(todo) {
+        if (!!todo) { //Only runs if todo exists (1 exclamation turns it into false and 2 turns it into true)
+            res.json(todo.toJSON());
+        } else {
+            res.status(404).send();
+        }
+    }, function(e) {
+        res.status(500).send();
+    })
+    // var todoId = parseInt(req.params.id, 10);
+    // //Finds the first todo that has the id that is equal to todoId
+    // var matchedTodo = _.findWhere(todos, {
+    //     id: todoId
+    // }); //Underscore js!!
+    //
+    // // todos.forEach(function(todo) {
+    // //     if (todoId === todo.id) {
+    // //         matchedTodo = todo;
+    // //     }
+    // // });
+    //
+    // if (matchedTodo) {
+    //     res.json(matchedTodo);
+    // } else {
+    //     res.status(404).send();
+    // }
 });
 
 // DELETE /todos/:id
