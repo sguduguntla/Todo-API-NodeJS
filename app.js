@@ -26,12 +26,14 @@ app.get("/todos", function(req, res) {
     }
 
     if (query.hasOwnProperty('q') && query.q.length > 0) {
-         where.description = {
-             $like: '%' + query.q + '%'
-         };
+        where.description = {
+            $like: '%' + query.q + '%'
+        };
     }
 
-    db.todo.findAll({where: where}).then(function(todos) {
+    db.todo.findAll({
+        where: where
+    }).then(function(todos) {
         res.json(todos);
     }, function(e) {
         res.status(500).send();
@@ -63,31 +65,31 @@ app.get('/todos/:id', function(req, res) {
     var todoId = parseInt(req.params.id, 10);
 
     db.todo.findById(todoId).then(function(todo) {
-        if (!!todo) { //Only runs if todo exists (1 exclamation turns it into false and 2 turns it into true)
-            res.json(todo.toJSON());
-        } else {
-            res.status(404).send();
-        }
-    }, function(e) {
-        res.status(500).send();
-    })
-    // var todoId = parseInt(req.params.id, 10);
-    // //Finds the first todo that has the id that is equal to todoId
-    // var matchedTodo = _.findWhere(todos, {
-    //     id: todoId
-    // }); //Underscore js!!
-    //
-    // // todos.forEach(function(todo) {
-    // //     if (todoId === todo.id) {
-    // //         matchedTodo = todo;
-    // //     }
-    // // });
-    //
-    // if (matchedTodo) {
-    //     res.json(matchedTodo);
-    // } else {
-    //     res.status(404).send();
-    // }
+            if (!!todo) { //Only runs if todo exists (1 exclamation turns it into false and 2 turns it into true)
+                res.json(todo.toJSON());
+            } else {
+                res.status(404).send();
+            }
+        }, function(e) {
+            res.status(500).send();
+        })
+        // var todoId = parseInt(req.params.id, 10);
+        // //Finds the first todo that has the id that is equal to todoId
+        // var matchedTodo = _.findWhere(todos, {
+        //     id: todoId
+        // }); //Underscore js!!
+        //
+        // // todos.forEach(function(todo) {
+        // //     if (todoId === todo.id) {
+        // //         matchedTodo = todo;
+        // //     }
+        // // });
+        //
+        // if (matchedTodo) {
+        //     res.json(matchedTodo);
+        // } else {
+        //     res.status(404).send();
+        // }
 });
 
 // DELETE /todos/:id
@@ -130,30 +132,48 @@ app.delete('/todos/:id', function(req, res) {
 // PUT /todos/:id
 app.put('/todos/:id', function(req, res) {
     var todoId = parseInt(req.params.id, 10);
-    var matchedTodo = _.findWhere(todos, {
-        id: todoId
-    });
+    // var matchedTodo = _.findWhere(todos, {
+    //     id: todoId
+    // });
     var body = _.pick(req.body, 'description', 'completed'); //Only captures the description and completed properties
-    var validAttributes = {};
+    var attributes = {};
 
-    if (!matchedTodo) {
-        return res.status(400).send();
-    }
+    // if (!matchedTodo) {
+    //     return res.status(400).send();
+    // }
 
     if (body.hasOwnProperty('completed') && _.isBoolean(body.completed)) { //Check is body has the "completed" attribute
-        validAttributes.completed = body.completed;
+        attributes.completed = body.completed;
     } else if (body.hasOwnProperty('completed')) {
-        return res.status(400).send();
+        return res.status(400).json({
+            "error": "The value for 'completed' is not a boolean"
+        });
     }
 
-    if (body.hasOwnProperty('description') && _.isString(body.description) && body.description.trim().length > 0) {
-        validAttributes.description = body.description;
+    if (body.hasOwnProperty('description') && _.isString(body.description)) {
+        attributes.description = body.description;
     } else if (body.hasOwnProperty('description')) {
-        return res.status(400).send();
+        return res.status(400).json({
+            "error": "The value for 'description' is not a string"
+        })
     }
 
-    _.extend(matchedTodo, validAttributes); //Overrides all same attributes in matchedTodo with validAttributes
-    res.json(matchedTodo);
+    db.todo.findById(todoId).then(function(todo) {
+        if (todo) {
+            todo.update(attributes).then(function(todo) {
+                res.json(todo.toJSON());
+            }, function(e) {
+                res.status(400).json(e);
+            });
+        } else {
+            res.status(404).send();
+        }
+    }, function() {
+        res.status(500).send();
+    });
+
+    // _.extend(matchedTodo, validAttributes); //Overrides all same attributes in matchedTodo with validAttributes
+    // res.json(matchedTodo);
 });
 
 // POST /todos
@@ -161,9 +181,9 @@ app.post('/todos', function(req, res) {
     var body = _.pick(req.body, "description", "completed");
 
     db.todo.create(body).then(function(todo) {
-        return res.status(200).json(todo);
+        res.status(200).json(todo);
     }).catch(function(e) {
-        return res.status(400).json(e);
+        res.status(400).json(e);
     });
 
     //THE POWER OF UNDERSCOREE
