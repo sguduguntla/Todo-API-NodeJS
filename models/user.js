@@ -15,5 +15,13 @@ module.exports = function(sequelize, DataTypes) {
                 len: [7, 100]
             }
         }
+    }, {
+        hooks: {
+            beforeValidate: function(user, options) {
+                //Changes email to lowercase version before email is validate for uniqueness
+                user.email = user.email.toLowerCase();
+
+            }
+        }
     });
 };
