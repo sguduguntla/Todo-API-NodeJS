@@ -43,11 +43,40 @@ module.exports = function(sequelize, DataTypes) {
         }
     });
 
+    //Class level method
+    User.authenticate = function(body) {
+        return new Promise(function(resolve, reject) {
+
+            if (typeof body.email !== 'string' || typeof body.password !== 'string') {
+
+                return reject();
+            }
+
+            User.findOne({
+                where: {
+                    email: body.email
+                }
+            }).then(function(user) {
+                //if user doesnt exist or the password is not matched
+                if (!user || !bcrypt.compareSync(body.password, user.get('password_hash'))) {
+                    console.log(user);
+                    return reject();
+                }
+
+                resolve(user);
+            }, function(e) {
+                reject();
+            });
+
+        });
+    };
+
+    //Instance level method
     User.prototype.toPublicJSON = function() {
         var json = this.toJSON();
         //makes sure only these are returned in the API
         return _.pick(json, 'id', 'email', 'createdAt', 'updatedAt');
-    }
+    };
 
     return User;
 };
