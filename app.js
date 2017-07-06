@@ -18,8 +18,6 @@ app.use(bodyParser.urlencoded({
     extended: false
 }));
 
-app.use(express.static(path.join(__dirname, "public")));
-
 app.get("/", function(req, res) {
     res.render('index');
 });
@@ -272,9 +270,7 @@ app.delete('/users/login', middleware.requireAuthentication, function(req, res) 
     })
 })
 
-db.sequelize.sync({
-    force: true
-}).then(function() {
+db.sequelize.sync().then(function() {
     app.listen(PORT, function() {
         console.log("Listening on port " + PORT);
     });
