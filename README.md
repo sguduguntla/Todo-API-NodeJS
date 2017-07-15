@@ -1,4 +1,4 @@
-# Todo API powered by NodeJS
+# Todo API powered by NodeJS & SQL
 
 A simple Todo API demo built using NodeJS coupled with ExpressJS, Sqlite, Sequelize, Postgres, and Heroku. 
 
